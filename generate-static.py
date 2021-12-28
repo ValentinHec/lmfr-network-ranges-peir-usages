@@ -41,8 +41,8 @@ else:
 
 def getAllRangesFromIpam(ipamHostname, ipamCredential):
     start = datetime.now()
-    # r = requests.get(f"https://{ipamCredential}@{ipamHostname}/wapi/v2.4/range?_return_fields=extattrs,start_addr,end_addr&_return_type=json&_max_results=-100000", verify=False)
-    r = requests.get(f"https://{ipamCredential}@{ipamHostname}/wapi/v2.4/range?_return_fields=extattrs,start_addr,end_addr&_return_type=json&_max_results=100", verify=False)
+    r = requests.get(f"https://{ipamCredential}@{ipamHostname}/wapi/v2.4/range?_return_fields=extattrs,start_addr,end_addr&_return_type=json&_max_results=-100000", verify=False)
+    #r = requests.get(f"https://{ipamCredential}@{ipamHostname}/wapi/v2.4/range?_return_fields=extattrs,start_addr,end_addr&_return_type=json&_max_results=100", verify=False)
     data = json.loads(r.text)
     stop = datetime.now()
     temps_requete = (stop - start)
@@ -50,10 +50,7 @@ def getAllRangesFromIpam(ipamHostname, ipamCredential):
 
 
 listRangesAsIpamJson = getAllRangesFromIpam(IPAM_HOSTNAME, IPAM_CREDENTIAL)
-
-print(listRangesAsIpamJson)
 print()
-
 
 # A modifier -> Un CSV avec addr debut, fin, site id et vlan
 for currentRange in listRangesAsIpamJson:
@@ -70,6 +67,8 @@ for currentRange in listRangesAsIpamJson:
     
     if 'usage'  in currentRange['extattrs']:
         currentRange['usage'] = currentRange['extattrs']['usage']['value'].lower()
+    else:
+        continue
     
     if 'VLAN' in currentRange['extattrs']:
         currentRange['vlan'] = currentRange['extattrs']['VLAN']['value']
@@ -78,12 +77,14 @@ for currentRange in listRangesAsIpamJson:
         vlan = f"NoVlan"
     
     print(currentRange)
-    
+    row = site_id + ';' + vlan + ';' + range
+    row = f"{site_id};{vlan};{start_addr};{end_addr}"
+    print(row)
     if currentRange['usage'] in dictionnaryOfUsagesWithTheirRanges:
-        dictionnaryOfUsagesWithTheirRanges[currentRange['usage']].append(range)
+        dictionnaryOfUsagesWithTheirRanges[currentRange['usage']].append(row)
     else:
-        dictionnaryOfUsagesWithTheirRanges[currentRange['usage']] = [site_id][vlan][range]
-        pprint(dictionnaryOfUsagesWithTheirRanges[currentRange['usage']])
+        dictionnaryOfUsagesWithTheirRanges[currentRange['usage']] = [row]
+
 
 '''
 for currentUsage in dictionnaryOfUsagesWithTheirRanges:
@@ -97,19 +98,18 @@ for currentUsage in dictionnaryOfUsagesWithTheirRanges:
     f.write(contenuDuFichier)
     f.close()
 '''
-
+pprint(dictionnaryOfUsagesWithTheirRanges)
 
 for currentUsage in dictionnaryOfUsagesWithTheirRanges:
     outputFilename = f"{outputPath}/range-{currentUsage}.csv"
-    with open(outputFilename, 'w', newline='') as csvfile:
-        spamwriter = csv.writer(csvfile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        currentUsageRangeList = dictionnaryOfUsagesWithTheirRanges[currentUsage]
-        print(currentUsage)
-        # print(dictionnaryOfUsages[currentUsage])
-        contenuDuFichier = "\n".join(currentUsageRangeList)
-        spamwriter.writerow([currentUsageRangeList[0], currentUsageRangeList[1], currentUsageRangeList[2],
-                             currentUsageRangeList[3]])
-        print(f"output file is {outputFilename}")
+    f = open(outputFilename, 'w')
+    currentUsageRangeList = dictionnaryOfUsagesWithTheirRanges[currentUsage]
+    # print(currentUsage)
+    # print(dictionnaryOfUsages[currentUsage])
+    contenuDuFichier = "\n".join(currentUsageRangeList)
+
+    print(f"output file is {outputFilename}")
+    f.write(contenuDuFichier)
 exit()
 
 
