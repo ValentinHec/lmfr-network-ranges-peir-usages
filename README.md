@@ -14,19 +14,20 @@ mkdir venv
 python3 -m venv venv
 </code>
 
-- Créer un fichier <code>.env</code>
-<code>
-export IPAM_LOGIN=API_infoblox
+- Créer un fichier <code>.env</code> :
 
-export IPAM_PASSWORD=AJOUTER PWD
 
-export IPAM_HOSTNAME=ipam.fr.corp.leroymerlin.com
+export IPAM_LOGIN=API_infoblox\
 
-export DEFAULT_THRESHOLD_MIN_IPAM=200
+export IPAM_PASSWORD=AJOUTER PWD\
+
+export IPAM_HOSTNAME=ipam.fr.corp.leroymerlin.com\
+
+
+export DEFAULT_THRESHOLD_MIN_IPAM=200\
 
 export OUTPUT_PATH="/var/www/html/lmfr-network-list-usage/"
 
-</code>
 
 - Pour lancer le script :
 
