@@ -6,14 +6,7 @@
 git clone lien
 </code>
 
-- Créer un virtual env dans le dossier du script:
-
-<code>
-mkdir venv
-
-python3 -m venv venv
-</code>
-
+- Dézipper le venv
 - Créer un fichier <code>.env</code> :
 
 
