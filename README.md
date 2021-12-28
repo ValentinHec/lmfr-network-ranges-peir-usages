@@ -34,5 +34,8 @@ export OUTPUT_PATH="/var/www/html/lmfr-network-list-usage/"
 <code>
 source .env
 
-./venv/bin/python generate-static.py
-</code>
+./venv/bin/python csv_peir_usage.py </code> for one csv peir usage
+
+<code>./venv/bin/python one_csv.py</code> for a global csv
+
+<code>./venv/bin/python export_global.py</code> for a global csv and one csv peir usage
