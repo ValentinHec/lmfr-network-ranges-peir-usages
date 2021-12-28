@@ -11,7 +11,6 @@ from pprint import *
 # import functions as f
 import base64
 
-
 ### Input variables
 IPAM_LOGIN = os.environ.get('IPAM_LOGIN')
 IPAM_PASSWORD = os.environ.get('IPAM_PASSWORD')
@@ -29,20 +28,24 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 ### CONSTANT
 # IPAM_HOSTNAME = "ipam.fr.corp.leroymerlin.com"
 # DASHNET_HOSTNAME = "api.dashnet.fr.corp.leroymerlin.com"
-print( IPAM_LOGIN )
-print( IPAM_HOSTNAME)
+print(IPAM_LOGIN)
+print(IPAM_HOSTNAME)
 IPAM_CREDENTIAL = f"{IPAM_LOGIN}:{IPAM_PASSWORD}"
 dictionnaryOfUsagesWithTheirRanges = {}
+Liste_globale = []
 
-if OUTPUT_PATH == "None" :
+if OUTPUT_PATH == "None":
     outputPath = "./temp/"
 else:
     outputPath = OUTPUT_PATH
 
+
 def getAllRangesFromIpam(ipamHostname, ipamCredential):
     start = datetime.now()
-    r = requests.get(f"https://{ipamCredential}@{ipamHostname}/wapi/v2.4/range?_return_fields=extattrs,start_addr,end_addr&_return_type=json&_max_results=-100000", verify=False)
-    #r = requests.get(f"https://{ipamCredential}@{ipamHostname}/wapi/v2.4/range?_return_fields=extattrs,start_addr,end_addr&_return_type=json&_max_results=100", verify=False)
+    r = requests.get(
+        f"https://{ipamCredential}@{ipamHostname}/wapi/v2.4/range?_return_fields=extattrs,start_addr,end_addr&_return_type=json&_max_results=-100000",
+        verify=False)
+    # r = requests.get(f"https://{ipamCredential}@{ipamHostname}/wapi/v2.4/range?_return_fields=extattrs,start_addr,end_addr&_return_type=json&_max_results=100", verify=False)
     data = json.loads(r.text)
     stop = datetime.now()
     temps_requete = (stop - start)
@@ -58,46 +61,42 @@ for currentRange in listRangesAsIpamJson:
     start_addr = currentRange['start_addr']
     range = f"{start_addr}-{end_addr}"
     # currentRange['vlan'] = currentRange['extattrs']['VLAN']['value']
-    
+
     if 'site_id' in currentRange['extattrs']:
         currentRange['siteId'] = currentRange['extattrs']['site_id']['value']
         site_id = f"{currentRange['siteId']}"
     else:
         site_id = f"NoSiteID"
-    
-    if 'usage'  in currentRange['extattrs']:
+
+    if 'usage' in currentRange['extattrs']:
         currentRange['usage'] = currentRange['extattrs']['usage']['value'].lower()
     else:
         continue
-    
+
     if 'VLAN' in currentRange['extattrs']:
         currentRange['vlan'] = currentRange['extattrs']['VLAN']['value']
         vlan = f"{currentRange['vlan']}"
     else:
         vlan = f"NoVlan"
-    
+
     print(currentRange)
     row = site_id + ';' + vlan + ';' + range
     row = f"{site_id};{vlan};{start_addr};{end_addr}"
-    print(row)
+    row_for_global = f"{currentRange['usage']};{site_id};{vlan};{start_addr};{end_addr}"
+    Liste_globale.append(row)
     if currentRange['usage'] in dictionnaryOfUsagesWithTheirRanges:
         dictionnaryOfUsagesWithTheirRanges[currentRange['usage']].append(row)
     else:
         dictionnaryOfUsagesWithTheirRanges[currentRange['usage']] = [row]
 
+outputFilename = f"{outputPath}/output_one_csv.csv"
+f = open(outputFilename, 'w')
+contenu_final = ""
+for item in Liste_globale:
+    contenu_final = contenu_final + "\n" + item
+f.write(contenu_final)
+f.close()
 
-'''
-for currentUsage in dictionnaryOfUsagesWithTheirRanges:
-    currentUsageRangeList = dictionnaryOfUsagesWithTheirRanges[currentUsage]
-    print(currentUsage)
-    # print(dictionnaryOfUsages[currentUsage])    
-    contenuDuFichier = "\n".join(currentUsageRangeList)
-    outputFilename = f"{outputPath}/range-{currentUsage}.txt"
-    print(f"output file is {outputFilename}")
-    f = open(outputFilename, "w")
-    f.write(contenuDuFichier)
-    f.close()
-'''
 pprint(dictionnaryOfUsagesWithTheirRanges)
 
 for currentUsage in dictionnaryOfUsagesWithTheirRanges:
@@ -107,7 +106,6 @@ for currentUsage in dictionnaryOfUsagesWithTheirRanges:
     # print(currentUsage)
     # print(dictionnaryOfUsages[currentUsage])
     contenuDuFichier = "\n".join(currentUsageRangeList)
-
     print(f"output file is {outputFilename}")
     f.write(contenuDuFichier)
 exit()
